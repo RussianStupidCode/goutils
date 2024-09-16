@@ -4,7 +4,7 @@ import (
 	"context"
 )
 
-// Wrap2ChanFn обернуть в функциюб которую можно отменить по контексту
+// Wrap2ChanFn обернуть в функцию, которую можно отменить по контексту
 func Wrap2ChanFn[T any](ctx context.Context, f func() T) func() <-chan T {
 	ch := make(chan T)
 
@@ -32,7 +32,7 @@ func MergeChannels[T any](ctx context.Context, channels ...<-chan T) <-chan stru
 	out := make(chan struct {
 		Val T
 		Idx int
-	})
+	}, len(channels))
 
 	go func() {
 		defer close(out)

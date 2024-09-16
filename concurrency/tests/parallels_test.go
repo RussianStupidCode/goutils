@@ -141,7 +141,7 @@ func TestRunParallelFiltered(t *testing.T) {
 	}
 }
 
-func TestRunParallelMostPriproity(t *testing.T) {
+func TestRunParallelMostPriority(t *testing.T) {
 	tests := []struct {
 		name        string
 		fns         []func() int
@@ -213,7 +213,7 @@ func TestRunParallelMostPriproity(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), tt.timeout)
 			defer cancel()
 
-			got, err := concurrency.RunParallelMostPriproity(ctx, tt.isSuccessFn, tt.priorities, tt.fns...)
+			got, err := concurrency.RunParallelMostPriority(ctx, tt.isSuccessFn, tt.priorities, tt.fns...)
 			if tt.wantErr {
 				assert.Error(t, err)
 			} else {

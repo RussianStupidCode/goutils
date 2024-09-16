@@ -14,12 +14,12 @@ const (
 	taskStatusFailed  taskStatus = 2
 )
 
-// RunParallelMostPriproity зпаралельно запускает функции
+// RunParallelMostPriority зпаралельно запускает функции
 // Возвращает результат самой приоритетной функции среди успешных
 // приоритет берется из массива priorities (чем ниже число, тем выше приоритет)
 // например для приоритетов [1, 8, 10] вернется результат функции с приоритетом 1 (при улсовии, что она выполнилась успешно)
 // если приоритет будет одинаковый, то вернется результат самой быстрой их них
-func RunParallelMostPriproity[T any](ctx context.Context, isSuccesFn func(v T) bool, priorities []int, fns ...func() T) (*T, error) {
+func RunParallelMostPriority[T any](ctx context.Context, isSuccesFn func(v T) bool, priorities []int, fns ...func() T) (*T, error) {
 	cancelCtx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
@@ -57,7 +57,6 @@ func RunParallelMostPriproity[T any](ctx context.Context, isSuccesFn func(v T) b
 	// функция, чтобы найти первый успешный и самый приоритетный результат
 	findResolvedTop := func(statuses []taskStatus, results []*T) (*T, bool) {
 		length := len(statuses) // должно совпадать с длиной results
-		isMostPriority := true
 
 		for i := 0; i < length; i++ {
 			res := results[i]
@@ -68,7 +67,7 @@ func RunParallelMostPriproity[T any](ctx context.Context, isSuccesFn func(v T) b
 				return nil, false
 			}
 
-			if status == taskStatusSuccess && isMostPriority {
+			if status == taskStatusSuccess && res != nil {
 				return res, true
 			}
 
@@ -87,16 +86,15 @@ func RunParallelMostPriproity[T any](ctx context.Context, isSuccesFn func(v T) b
 
 	resChan := Funcs2Channels(cancelCtx, fns...)
 	for v := range resChan {
-		idx := v.Idx
-		idxWithPriority := priorities[idx]
+		idx := priorities[v.Idx]
 
 		isSucces := isSuccesFn(v.Val)
 		if isSucces {
-			statuses[idxWithPriority] = taskStatusSuccess
+			statuses[idx] = taskStatusSuccess
 		} else {
-			statuses[idxWithPriority] = taskStatusFailed
+			statuses[idx] = taskStatusFailed
 		}
-		results[idxWithPriority] = &v.Val
+		results[idx] = &v.Val
 
 		res, ok := findResolvedTop(statuses, results)
 		if ok {
