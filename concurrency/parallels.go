@@ -36,13 +36,10 @@ func RunParallelMostPriority[T any](ctx context.Context, isSuccesFn func(v T) bo
 		lowestPriproty := -1
 		for i := 0; i < length; i++ {
 			p := priorities[i]
+			res[i] = p
 
 			if lowestPriproty < p {
 				lowestPriproty = p
-			}
-
-			if i < len(priorities) {
-				res[i] = p
 			}
 		}
 

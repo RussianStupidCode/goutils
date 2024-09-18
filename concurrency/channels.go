@@ -4,26 +4,34 @@ import (
 	"context"
 )
 
-// Wrap2ChanFn обернуть в функцию, которую можно отменить по контексту
-func Wrap2ChanFn[T any](ctx context.Context, f func() T) func() <-chan T {
+
+func Wrap2ChanFn[T any](f func() T) func() <-chan T {
 	ch := make(chan T)
 
 	return func() <-chan T {
 		go func() {
 			defer close(ch)
-
-			select {
-			case <-ctx.Done():
-				return
-			case ch <- f():
-				return
-			}
+ 			ch <- f()
 		}()
 
 		return ch
 	}
 }
 
+
+func Wrap2CanceledFn[F func() error](ctx context.Context, f F) F {
+	return func () error {
+		ch := Wrap2ChanFn(f)()
+		select{
+		case <-ctx.Done():
+			return ctx.Err()
+
+		case err := <-ch:
+			return err
+		}
+	}
+
+}
 // MergeChannels cливает каналы в 1, при этом канал возвращает значение с индексом исходного канала
 func MergeChannels[T any](ctx context.Context, channels ...<-chan T) <-chan struct {
 	Val T
@@ -79,7 +87,7 @@ func Funcs2Channels[T any](ctx context.Context, funcs ...func() T) <-chan struct
 } {
 	fChans := make([]<-chan T, 0)
 	for _, fn := range funcs {
-		f := Wrap2ChanFn(ctx, fn)
+		f := Wrap2ChanFn(fn)
 		fChans = append(fChans, f())
 	}
 

@@ -38,7 +38,7 @@ func TestWrap2ChanFn(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), tt.ctxTimeout)
 			defer cancel()
 
-			resultFunc := concurrency.Wrap2ChanFn(ctx, tt.f)
+			resultFunc := concurrency.Wrap2ChanFn(tt.f)
 			resultChan := resultFunc()
 
 			select {
